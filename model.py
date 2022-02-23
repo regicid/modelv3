@@ -42,6 +42,7 @@ class Population:
         self.T = T
         self.prob_matrixes = prob_matrixes
         self.update_rate = update_rate
+        self.state_space = state_space
         self.states = np.round(np.random.normal(loc=self.μ,scale=self.σ,size=self.N),1).clip(state_space.min(),state_space.max())
         self.strategies = np.zeros(self.N,dtype="int8")
         self.p = 0
@@ -57,7 +58,7 @@ class Population:
         self.v = np.mean(self.strategies>0)
         strategies = dyn_prog(self.T,self.p,self.v,self.prob_matrixes)[2]
         z = np.random.random(self.N)<self.update_rate
-        positions = ((self.states[z]-state_space.min())/(state_space[1]-state_space[0])).round().astype('int')
+        positions = ((self.states[z]-self.state_space.min())/(self.state_space[1]-self.state_space[0])).round().astype('int')
         self.strategies[z] = strategies[positions]
     def round(self,t):
         self.frequencies = np.zeros(shape = (3,t))
