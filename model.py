@@ -9,7 +9,6 @@ from tqdm import tqdm_notebook as tqdm
 import copy
 
 
-
 def dyn_prog(T,p,v,prob_matrixes,n=10,r=.99,γ=1/3,m=.01,f2=.05,ω=.1,β=10,π=20,state_space = np.round(np.linspace(-50,50,1001),1)):
     p = (1-(1-p)**n)/n
     if v==1: v=.999
@@ -32,14 +31,16 @@ def dyn_prog(T,p,v,prob_matrixes,n=10,r=.99,γ=1/3,m=.01,f2=.05,ω=.1,β=10,π=2
         fitness = np.max(exp_fitness,axis=0)
     return fitness, exp_fitness, decisions
 
+
 class Population:
-    def __init__(self,μ,σ,N,prob_matrixes,T = 200,n=10,r=.99,γ=1/3,m=.01,f2=.05,ω=.1,β=10,π=20,state_space = np.round(np.linspace(-50,50,1001),1),initial_v=0,update_rate = 1):
+    def __init__(self,μ,σ,N,prob_matrixes,T = 200,n=10,r=.99,γ=1/3,β=10,π=20,state_space = np.round(np.linspace(-50,50,1001),1),initial_v=0,update_rate = 1):
         self.μ = μ
         self.σ = σ
         self.N = N
         self.n = n
-        self.m = m
         self.T = T
+        self.r = r
+        self.β = β
         self.prob_matrixes = prob_matrixes
         self.update_rate = update_rate
         self.state_space = state_space
@@ -79,28 +80,17 @@ class Population:
                     caught = (np.random.random()<γ)
                     if self.strategies[target]>0:
                         fight_winner = np.random.random()>.5 #Symetric fight
-                        self.states[target] -= β*fight_winner
-                        self.states[stealer] += β*(1-fight_winner)*(1-caught) - π*caught
+                        self.states[target] -= self.β*fight_winner
+                        self.states[stealer] += self.β*(1-fight_winner)*(1-caught) - self.π*caught
                     else: #If the target is non violent, the stealer just takes resources
-                        self.states[target] -= β
-                        self.states[stealer] += β*(1-caught) - π*caught
+                        self.states[target] -= self.β
+                        self.states[stealer] += self.β*(1-caught) - self.π*caught
             
             #Shuffle the states (social mobility)
-            fluctuations = np.random.normal(loc=self.μ,scale=np.sqrt(1-r**2)/(1-r)*self.σ,size=self.N)
-            self.states = r*self.states + (1-r)*fluctuations
+            fluctuations = np.random.normal(loc=self.μ,scale=np.sqrt(1-self.r**2)/(1-self.r)*self.σ,size=self.N)
+            self.states = self.r*self.states + (1-self.r)*fluctuations
             self.states = self.states.clip(np.min(state_space),np.max(state_space)).round(1)
             
             #Record behaviours
             freq = np.unique(self.strategies,return_counts=True)
             self.frequencies[freq[0],z] = freq[1]/self.N
-    def plot(self,t_min=0,t_max = None):
-        if t_max is None: t_max = self.frequencies.shape[1]
-        plt.bar(np.arange(t_max-t_min),self.frequencies[2,t_min:t_max],label="Steal",color="red")
-        bottom = copy.copy(self.frequencies[2,t_min:t_max])
-        Actions = ["Submissive","Violent","Steal"]
-        for i in range(2):
-            plt.bar(np.arange(t_max-t_min),self.frequencies[2-i-1,t_min:t_max],bottom = bottom,label=Actions[2-i-1])
-            bottom += self.frequencies[3-i-1,t_min:t_max]
-        plt.legend()
-        plt.yscale("symlog",linthresh=.02)
-        plt.show()
