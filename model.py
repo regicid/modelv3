@@ -5,7 +5,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib
-from tqdm import tqdm_notebook as tqdm
+from tqdm import tqdm
 import copy
 
 
@@ -44,7 +44,7 @@ class Population:
         self.prob_matrixes = prob_matrixes
         self.update_rate = update_rate
         self.state_space = state_space
-        self.states = np.round(np.random.normal(loc=self.μ,scale=self.σ,size=self.N),1).clip(state_space.min(),state_space.max())
+        self.states = np.round(np.random.normal(loc=self.μ,scale=self.σ,size=self.N),1).clip(self.state_space.min(),self.state_space.max())
         self.strategies = np.zeros(self.N,dtype="int8")
         self.p = 0
         self.v = initial_v
@@ -89,7 +89,7 @@ class Population:
             #Shuffle the states (social mobility)
             fluctuations = np.random.normal(loc=self.μ,scale=np.sqrt(1-self.r**2)/(1-self.r)*self.σ,size=self.N)
             self.states = self.r*self.states + (1-self.r)*fluctuations
-            self.states = self.states.clip(np.min(state_space),np.max(state_space)).round(1)
+            self.states = self.states.clip(np.min(self.state_space),np.max(self.state_space)).round(1)
             
             #Record behaviours
             freq = np.unique(self.strategies,return_counts=True)
