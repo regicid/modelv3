@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 from model import *
+import multiprocessing as mtp
 T = 200
 r = .99
 σ = 4
@@ -27,13 +28,20 @@ def probas(modif):
     z = (norm_distrib(x = state_space,loc = r*state_space + (1-r)*u + modif,scale = np.sqrt(1-r**2)*σ))
     return(z)
 
-prob_matrixes = np.array([probas(0),probas(-β),probas(β),probas(-π)])
-
-MU = np.linspace(10,16)
-Results = []
-for mu in MU:
+def get_pop(mu):
+	prob_matrixes = np.array([probas(0),probas(-β),probas(β),probas(-π)])
 	P = Population(mu,4,10**5,prob_matrixes,update_rate = .1)
 	P.round(100)
-	Results.append(P)
+	pickle.dump(P,open(f"result_{mu}.pl","wb"))
 
-pickle.dump(Results,open("results.pl","rb"))
+MU = np.linspace(10,16,10)
+
+l = mtp.Pool(processes=10)
+runs = l.map_async(get_pop,MU)
+l.close()
+l.join()
+Results = []
+for run in runs.get():
+    Results.append(run)
+
+
