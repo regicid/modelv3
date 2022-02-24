@@ -7,6 +7,17 @@ import matplotlib.pyplot as plt
 import matplotlib
 from tqdm import tqdm
 import copy
+def norm_distrib(x,loc,scale=np.sqrt(1-r**2)*σ):
+    x = np.array(x)
+    loc = np.array(loc)
+    x = np.tile(x,(loc.size,1))
+    loc = np.tile(loc,(loc.size,1))
+    z = (scale/np.sqrt(2*np.pi))*np.exp(-(x-loc.T)**2/(2*scale**2))
+    return z/z.sum(1,keepdims=1)
+
+def probas(modif):
+    z = (norm_distrib(x = state_space,loc = r*state_space + (1-r)*u + modif,scale = np.sqrt(1-r**2)*σ))
+    return(z)
 
 
 def dyn_prog(T,p,v,prob_matrixes,n=10,r=.99,γ=1/3,m=.01,f2=.05,ω=.1,β=10,π=20,state_space = np.round(np.linspace(-50,50,1001),1)):
