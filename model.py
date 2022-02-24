@@ -103,7 +103,7 @@ class Population:
         self.strategies[z] = strategies[positions]
     def round(self,t):
         self.frequencies = np.zeros(shape = (3,t))
-        for z in tqdm(range(t)):
+        for z in range(t):
             ### Choices
             self.update_strategies()
             ### Actions' consequences
